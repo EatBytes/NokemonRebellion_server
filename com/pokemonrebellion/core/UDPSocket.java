@@ -5,30 +5,41 @@ import com.pokemonrebellion.entity.Response;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 
-public class SingleSocket {
+public class UDPSocket {
     private static final String _IP = "localhost";
+    private static final String _EXT_IP = "224.0.0.1";
+
     private static final int PORT = 8500;
+    private static final int EXT_PORT = 8510;
 
     private InetAddress IP;
-    private DatagramSocket socket;
+    private InetAddress EXT_IP;
+    private MulticastSocket socket;
 
-    public SingleSocket() {
+    public UDPSocket() {
         try {
+            EXT_IP = InetAddress.getByName(_EXT_IP);
             IP = InetAddress.getByName(_IP);
-            socket = new DatagramSocket(PORT);
+
+            socket = new MulticastSocket(PORT);
+            socket.joinGroup(EXT_IP);
         } catch(IOException e) {
             e.getStackTrace();
         }
     }
 
+    public DatagramPacket serialize(Response response) {
+        return new DatagramPacket(response.getContent(), response.getContent().length, IP, EXT_PORT);
+    }
+
     public DatagramPacket serialize(Response response, Request request) {
         return new DatagramPacket(response.getContent(),
-                                response.getContent().length,
-                                request.getRaw().getAddress(),
-                                request.getRaw().getPort());
+                response.getContent().length,
+                request.getRaw().getAddress(),
+                request.getRaw().getPort());
     }
 
     public void send(DatagramPacket data) {
@@ -49,5 +60,23 @@ public class SingleSocket {
         }
 
         return null;
+    }
+
+    public InetAddress getIp() {
+        return IP;
+    }
+    public int getPort() {
+        return PORT;
+    }
+
+    public InetAddress getExtIp() {
+        return EXT_IP;
+    }
+    public int getExtPort() {
+        return EXT_PORT;
+    }
+
+    public MulticastSocket getSocket() {
+        return socket;
     }
 }

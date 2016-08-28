@@ -1,25 +1,19 @@
 package com.pokemonrebellion.core;
 
 public class CoreDependency {
-    private SingleSocket singleSocket;
-    private MultiSocket multiSocket;
+    private UDPSocket udpSocket;
     private Position position;
 
     public CoreDependency() {
-        singleSocket = new SingleSocket();
-        multiSocket = new MultiSocket();
+        udpSocket = new UDPSocket();
         position = new Position();
     }
 
-    public MultiSocket getMultiSocket() {
-        return multiSocket;
+    public UDPSocket getUdpSocket() {
+        return udpSocket;
     }
 
     public Position getPosition() {
         return position;
-    }
-
-    public SingleSocket getSingleSocket() {
-        return singleSocket;
     }
 }
