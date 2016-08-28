@@ -32,7 +32,7 @@ public class UDPSocket {
     }
 
     public DatagramPacket serialize(Response response) {
-        return new DatagramPacket(response.getContent(), response.getContent().length, IP, EXT_PORT);
+        return new DatagramPacket(response.getContent(), response.getContent().length, EXT_IP, EXT_PORT);
     }
 
     public DatagramPacket serialize(Response response, Request request) {
