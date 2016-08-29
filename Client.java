@@ -2,57 +2,41 @@ import java.io.*;
 import java.net.*;
 
 public class Client {
-    private final static String IP_STRING_MULTI = "224.0.0.1";
-    private final static String IP_STRING_REPLY = "localhost";
-    private final static int PORT_MULTI = 8510;
-    private final static int PORT_REPLY = 8500;
+    private final static String _EXT_IP = "224.0.0.1";
+    private final static String _SERV_IP= "localhost";
+    private final static int EXT_PORT = 8510;
+    private final static int SERV_PORT = 8500;
 
     private final static int BUFFER_LENGTH = 1024;
     private final static byte BUFFER[] = new byte[BUFFER_LENGTH];
 
     public static void main(String argv[]) throws Exception {
-        //MULTI
-        InetAddress IP_MULTI = InetAddress.getByName(IP_STRING_MULTI);
+        //Addr
+        InetAddress EXT_IP = InetAddress.getByName(_EXT_IP);
+        InetAddress SERV_IP = InetAddress.getByName(_SERV_IP);
 
-        MulticastSocket socketMulti = new MulticastSocket(PORT_MULTI);
-        socketMulti.joinGroup(IP_MULTI);
-        DatagramPacket packetMulti = new DatagramPacket(BUFFER, BUFFER_LENGTH, IP_MULTI, PORT_MULTI);
+        //Socket
+        MulticastSocket socket = new MulticastSocket(EXT_PORT);
+        socket.joinGroup(EXT_IP);
 
-        Thread multiThread = new Thread(new MultiThread(socketMulti, packetMulti));
-        multiThread.start();
+        //Packets
+        DatagramPacket ext_packet = new DatagramPacket(BUFFER, BUFFER_LENGTH, EXT_IP, EXT_PORT);
+        DatagramPacket serv_packet = new DatagramPacket(BUFFER, BUFFER_LENGTH, SERV_IP, SERV_PORT);
 
-        //REPLY
-        InetAddress IP_REPLY = InetAddress.getByName(IP_STRING_REPLY);
+        //Threads
+        Thread receiveThread = new Thread(new ReceiveThread(socket, ext_packet));
+        receiveThread.start();
 
-        DatagramSocket socketReply = new DatagramSocket(8501);
-        byte[] bytes = createBytes();
-        DatagramPacket packetReply = new DatagramPacket(bytes, bytes.length, IP_REPLY, PORT_REPLY);
-
-        Thread replyThread = new Thread(new ReplyThread(socketReply, packetReply));
+        Thread replyThread = new Thread(new ReplyThread(socket, serv_packet));
         replyThread.start();
-    }
-
-    private static byte[] createBytes() {
-        ByteArrayOutputStream baos= new ByteArrayOutputStream();
-        DataOutputStream daos = new DataOutputStream(baos);
-
-        try {
-            daos.writeInt(0); //ID
-            daos.writeInt(5); //OPT
-            daos.writeUTF("test");
-        } catch (IOException e) {
-            e.getStackTrace();
-        }
-
-        return baos.toByteArray();
     }
 }
 
 class ReplyThread implements Runnable {
-    private DatagramSocket socket;
+    private MulticastSocket socket;
     private DatagramPacket sendPacket;
 
-    public ReplyThread(DatagramSocket s, DatagramPacket p) {
+    public ReplyThread(MulticastSocket s, DatagramPacket p) {
         socket = s;
         sendPacket = p;
     }
@@ -61,29 +45,46 @@ class ReplyThread implements Runnable {
     public void run() {
         boolean run = true;
         BufferedReader BR = new BufferedReader(new InputStreamReader(System.in));
-        DatagramPacket receivePacket = new DatagramPacket(new byte[1024], 1024);
 
         while (run) {
             try {
                 System.out.println("[REPLY] Wait to send :");
 
-                BR.readLine();
+                String s = BR.readLine();
+                byte[] bytes = createBytes(s);
+
+                sendPacket.setData(bytes);
+                sendPacket.setLength(bytes.length);
+
                 socket.send(sendPacket);
-                socket.receive(receivePacket);
-                System.out.println(new String(receivePacket.getData(), 0, receivePacket.getLength()));
             } catch (IOException e) {
                 e.getStackTrace();
                 run = false;
             }
         }
     }
+
+    private byte[] createBytes(String s) {
+        ByteArrayOutputStream baos= new ByteArrayOutputStream();
+        DataOutputStream daos = new DataOutputStream(baos);
+
+        try {
+            daos.writeInt(2); //ID
+            daos.writeInt(5); //OPT
+            daos.writeUTF(s);
+        } catch (IOException e) {
+            e.getStackTrace();
+        }
+
+        return baos.toByteArray();
+    }
 }
 
-class MultiThread implements Runnable {
+class ReceiveThread implements Runnable {
     private MulticastSocket socket;
     private DatagramPacket receivePacket;
 
-    public MultiThread(MulticastSocket s, DatagramPacket p) {
+    public ReceiveThread(MulticastSocket s, DatagramPacket p) {
         socket = s;
         receivePacket = p;
     }

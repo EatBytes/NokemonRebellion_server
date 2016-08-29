@@ -7,7 +7,8 @@ import java.net.DatagramPacket;
 
 public class Request {
     private int id = 2;
-    private int content = 0;
+    private int opt = 0;
+    private String content;
     private DatagramPacket raw;
     private boolean status;
 
@@ -16,7 +17,8 @@ public class Request {
 
         try {
             id = buffer.readInt();
-            content = buffer.readInt();
+            opt = buffer.readInt();
+            content = buffer.readUTF();
             status = true;
         } catch (IOException e) {
             status = false;
@@ -36,7 +38,7 @@ public class Request {
         return id;
     }
 
-    public int getContent() {
+    public String getContent() {
         return content;
     }
 

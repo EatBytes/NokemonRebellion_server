@@ -4,7 +4,6 @@ import com.pokemonrebellion.core.CoreDependency;
 import com.pokemonrebellion.core.UDPSocket;
 import com.pokemonrebellion.definition.ProcessorInterface;
 import com.pokemonrebellion.entity.Request;
-import com.pokemonrebellion.entity.Response;
 import com.pokemonrebellion.processor.CloseProcessor;
 import com.pokemonrebellion.processor.InvalidBufferProcessor;
 import com.pokemonrebellion.processor.UpdatePositionProcessor;
@@ -22,16 +21,11 @@ public class ReplyThread implements Runnable {
 
     private UDPSocket socket;
     private boolean running = true;
-    private CoreDependency coreDependency;
-
-    public ReplyThread(CoreDependency c) {
-        coreDependency = c;
-    }
 
     @Override
     public void run() {
         DatagramPacket data = new DatagramPacket(BUFFER, BUFFER_LENGTH);
-        socket = coreDependency.getUdpSocket();
+        socket = CoreDependency.getInstance().getUdpSocket();
 
         while (running) {
             System.out.println("[REPLY] => Waiting...");
@@ -39,29 +33,15 @@ public class ReplyThread implements Runnable {
             DatagramPacket packet = socket.receive(data);
 
             Request request = new Request(packet);
-            Response response = processAction(request);
-            sendReply(response, request);
+            processAction(request);
         }
     }
 
-    private Response processAction(Request request) {
+    private void processAction(Request request) {
         if (!request.getStatus()) {
-            return processors[1].run(request);
+            processors[1].run(request);
         }
 
-        coreDependency.getPosition().switchState(); //TEST
-
-        return processors[request.getId()].run(request);
-    }
-
-    private void sendReply(Response response, Request request) {
-        //Reply single client
-        DatagramPacket resPacket = socket.serialize(response, request);
-        socket.send(resPacket);
-
-        //Reply group
-        Response r = new Response(coreDependency.getPosition().getState().getBytes());
-        DatagramPacket allPacket = socket.serialize(r);
-        socket.send(allPacket);
+        processors[request.getId()].run(request);
     }
 }
