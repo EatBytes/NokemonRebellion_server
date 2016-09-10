@@ -1,6 +1,6 @@
 package com.pokemonrebellion.thread;
 
-import com.pokemonrebellion.core.CoreDependency;
+import com.pokemonrebellion.core.Core;
 import com.pokemonrebellion.core.UDPSocket;
 import com.pokemonrebellion.definition.ProcessorInterface;
 import com.pokemonrebellion.entity.Request;
@@ -25,7 +25,7 @@ public class ReplyThread implements Runnable {
     @Override
     public void run() {
         DatagramPacket data = new DatagramPacket(BUFFER, BUFFER_LENGTH);
-        socket = CoreDependency.getInstance().getUdpSocket();
+        socket = Core.udpSocket;
 
         while (running) {
             System.out.println("[REPLY] => Waiting...");

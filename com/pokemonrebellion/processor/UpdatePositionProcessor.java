@@ -1,5 +1,6 @@
 package com.pokemonrebellion.processor;
 
+import com.pokemonrebellion.core.Core;
 import com.pokemonrebellion.core.UDPSocket;
 import com.pokemonrebellion.definition.ProcessorInterface;
 import com.pokemonrebellion.entity.Request;
@@ -17,12 +18,12 @@ public class UpdatePositionProcessor extends Processor implements ProcessorInter
         String b = "client";
         Response r2 = new Response(b.getBytes());
 
-        UDPSocket so = getCoreDependency().getUdpSocket();
+        UDPSocket so = Core.udpSocket;
 
-        DatagramPacket replyToClient = so.serialize(r2, request);
+        DatagramPacket replyToClient = so.serializeToClient(r2, request);
         so.send(replyToClient);
 
-        DatagramPacket replyToAll = so.serialize(r);
+        DatagramPacket replyToAll = so.serializeToAll(r);
         so.send(replyToAll);
     }
 }

@@ -31,11 +31,11 @@ public class UDPSocket {
         }
     }
 
-    public DatagramPacket serialize(Response response) {
+    public DatagramPacket serializeToAll(Response response) {
         return new DatagramPacket(response.getContent(), response.getContent().length, EXT_IP, EXT_PORT);
     }
 
-    public DatagramPacket serialize(Response response, Request request) {
+    public DatagramPacket serializeToClient(Response response, Request request) {
         return new DatagramPacket(response.getContent(),
                 response.getContent().length,
                 request.getRaw().getAddress(),
